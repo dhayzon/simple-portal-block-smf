@@ -1,0 +1,69 @@
+<?php
+/*---------------------------------------------------------------------------------
+*  ultimos usuarios registrados
+*	Version 1.1
+*	desarrollador: dhayzone
+*	Copyright 2013
+*	Powered by club-dhayzone.net
+**********************************************************************************/
+
+if (!defined('SMF'))
+	die('Hacking attempt...');
+	
+
+
+global $txt, $db_prefix, $scripturl, $memberContext, $modSettings;
+global $smcFunc, $boarddir;
+$limit = 10; // esto nos indica cuantos usuarios se mostrara (?)
+$mensaje = true; //Muestra el mensaje al pasar el mouse por encima del nombre
+$sql = $smcFunc['db_query']('',"
+      SELECT id_member, real_name, posts,date_registered,avatar
+      FROM {db_prefix}members
+      ORDER BY id_member DESC
+      LIMIT 0,$limit ");
+	  
+   $context['nuevos-usuarios'] = array();
+   while ($row_members = $smcFunc['db_fetch_assoc']($sql))
+   { 
+		$context['nuevos-usuarios'][] = array(
+			 'posts' => $row_members['posts'],
+			 'date_registered' => $row_members['date_registered'],
+			 'id' => $row_members['id_member'],
+			 'name' => $row_members['real_name'],         
+			 'href' => $scripturl . '?action=profile;u=' . $row_members['id_member'],
+			 'avatar' => $row_members['avatar'] == '' ? $memberContext[$row_members['id_member']]['avatar']['href'] : (stristr($$row_members['avatar'], 'http://') ? $row_members['avatar'] : $modSettings['avatar_url'] . '/' . $row_members['avatar']),
+
+		);
+   }
+   $smcFunc['db_free_result']($sql);
+
+echo '
+	<div class="contenedor-pricipal">
+	<div class="nombre-bloque"><div>', $txt['profile'] ,'</div></div>
+	';
+
+foreach ($context['nuevos-usuarios'] as $nuevo_user)
+{
+	if ($mensaje)
+	echo '
+	<div class="contenedor2">
+        <div class="avatares_users">
+         <a class="cd-user" href="'.$nuevo_user['href'].'" title="'.!empty($txt['lastUserWelcome']).' '.$nuevo_user['name'].' '.!empty($txt['profilevisit']).'">
+	      <img src=" '.$nuevo_user['avatar'].'" align="middle" alt="' . $row['icon'] . '" />
+	       <span>
+           '.$nuevo_user['name'].'
+	       </span>
+	     </a>
+	  </div>
+	</div>';
+	
+	else	
+	echo '
+	     
+	';
+	
+}
+echo '
+	</div>
+';
+?>
