@@ -1,0 +1,11 @@
+<?php
+$stats = ssi_boardStats('array');
+//$latest_member = ssi_latestMember('array');
+echo '<div class="numero-stats-content">';
+echo '<div class="numero-stats"> ', $stats['members'], ' </br><p>Usuarios</p></div>';
+
+echo ' <div class="numero-stats-1">', $stats['posts'], ' </br><p>Comentarios</p></div>';
+
+echo ' <div class="numero-stats-2">', $stats['topics'], ' </br><p>Temas</p></div> ';
+echo '</div>';
+?>
