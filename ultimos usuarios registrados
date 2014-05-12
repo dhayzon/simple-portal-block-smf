@@ -6,64 +6,74 @@
 *	Copyright 2013
 *	Powered by club-dhayzone.net
 **********************************************************************************/
-
 if (!defined('SMF'))
 	die('Hacking attempt...');
-	
 
+
+
+
+
+
+function Nuevos_usuarios(){
 
 global $txt, $db_prefix, $scripturl, $memberContext, $modSettings;
-global $smcFunc, $boarddir;
-$limit = 10; // esto nos indica cuantos usuarios se mostrara (?)
-$mensaje = true; //Muestra el mensaje al pasar el mouse por encima del nombre
-$sql = $smcFunc['db_query']('',"
-      SELECT id_member, real_name, posts,date_registered,avatar
-      FROM {db_prefix}members
-      ORDER BY id_member DESC
-      LIMIT 0,$limit ");
-	  
-   $context['nuevos-usuarios'] = array();
-   while ($row_members = $smcFunc['db_fetch_assoc']($sql))
-   { 
-		$context['nuevos-usuarios'][] = array(
-			 'posts' => $row_members['posts'],
-			 'date_registered' => $row_members['date_registered'],
-			 'id' => $row_members['id_member'],
-			 'name' => $row_members['real_name'],         
-			 'href' => $scripturl . '?action=profile;u=' . $row_members['id_member'],
-			 'avatar' => $row_members['avatar'] == '' ? $memberContext[$row_members['id_member']]['avatar']['href'] : (stristr($$row_members['avatar'], 'http://') ? $row_members['avatar'] : $modSettings['avatar_url'] . '/' . $row_members['avatar']),
+global $smcFunc, $boarddir, $sourcedir;
 
-		);
-   }
-   $smcFunc['db_free_result']($sql);
-
-echo '
-	<div class="contenedor-pricipal">
-	<div class="nombre-bloque"><div>', $txt['profile'] ,'</div></div>
-	';
-
-foreach ($context['nuevos-usuarios'] as $nuevo_user)
+$text['sportal_false'] = 'Simple Portal not found';
+$fecha_reg  =' Fecha de registro';
+$limit = 10; //numero de usuarios a mostrar
+// Lets see if you are using Simple Portal. If not...well...go get them :D
+if (!file_exists($sourcedir . '/PortalBlocks.php'))
 {
-	if ($mensaje)
-	echo '
-	<div class="contenedor2">
-        <div class="avatares_users">
-         <a class="cd-user" href="'.$nuevo_user['href'].'" title="'.!empty($txt['lastUserWelcome']).' '.$nuevo_user['name'].' '.!empty($txt['profilevisit']).'">
-	      <img src=" '.$nuevo_user['avatar'].'" align="middle" alt="' . $row['icon'] . '" />
-	       <span>
-           '.$nuevo_user['name'].'
-	       </span>
-	     </a>
-	  </div>
-	</div>';
-	
-	else	
-	echo '
-	     
-	';
-	
+  echo $text['sportal_false'];
+  return;
 }
-echo '
-	</div>
-';
+
+ $new = $smcFunc['db_query']('','
+      SELECT t.id_member, t.real_name, t.posts, t.date_registered, t.avatar, g.online_color
+      FROM {db_prefix}members As t
+      LEFT JOIN {db_prefix}membergroups AS g ON (g.id_group = t.id_group)
+      ORDER BY id_member DESC
+      LIMIT '.$limit);
+
+   $new_user = array();
+
+ while ($row_members = $smcFunc['db_fetch_assoc']($new))
+   {
+      global $memberContext;
+      loadMemberData($row_members['id_member']);
+      loadMemberContext($row_members['id_member']);
+    $new_user[] = array(
+       'posts' => $row_members['posts'],
+       'date_registered' => $row_members['date_registered'],
+       'id' => $row_members['id_member'],
+       'name' => '<a style="color: ' . $row_members['online_color'] . ';" href="' . $scripturl . '?action=profile;u=' . $row_members['id_member'] . '">' . $row_members['real_name'] . '</a>',
+       'href' => $scripturl . '?action=profile;u=' . $row_members['id_member'],
+       'avatar' => $row_members['avatar'] == '' ? $memberContext[$row_members['id_member']]['avatar']['href'] : (stristr($row_members['avatar'], 'http://') ? $row_members['avatar'] : $modSettings['avatar_url'] . '/' . $row_members['avatar']),
+
+    );
+  }
+   
+$smcFunc['db_free_result']($new);
+
+foreach ($new_user as $new_users){
+    echo'<div class="media">
+  <a class="pull-left" href="'.$new_users['href'].'">';
+    if (!empty($new_users['avatar'])) {
+             echo'<img class="avatar media-object" src=" '.$new_users['avatar'].'" width="34px" height="34px" />';
+
+    }else{
+      echo '<img class="media-object avatar" src="/avatars/noavatar.gif"  alt="no tengo avatar xD" width="34px" height="34px" />';
+    }
+
+   echo'</a>
+  <div class="media-body">
+    <h4 class="media-heading">'.$new_users['name'].'</h4>
+    <small>'.$fecha_reg.' '.timeformat($new_users['date_registered'], ' %b %d %Y' ).'</small>
+  </div>
+</div>';
+}
+
+
+}
 ?>
